@@ -16,3 +16,8 @@ TYPE_TRANSITIVE = "transitive"
 INFO_TYPE = "type"
 INFO_STACK = "stack"
 INFO_OPTIONAL = "optional"
+
+# Labels for the kinds of conditional imports found via AST scanning
+IMPORT_OPTIONAL = "except_import_error"
+IMPORT_TYPE_CHECKING = "type_checking"
+IMPORT_DEFERRED = "deferred"

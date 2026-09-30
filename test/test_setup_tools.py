@@ -24,11 +24,12 @@ def test_parse_requirements_happy_file():
     """Make sure that parse_requirements correctly parses requirements for a
     library with multiple tracked modules
     """
-    with tempfile.NamedTemporaryFile("w") as requirements_file:
-        # Make a requirements file that looks normal
-        requirements_file.write("\n".join(sample_lib_requirements))
-        requirements_file.flush()
-
+    # delete=False keeps the file readable on Windows once the handle closes
+    requirements_file = tempfile.NamedTemporaryFile("w", delete=False)
+    requirements_file.write("\n".join(sample_lib_requirements))
+    requirements_file.flush()
+    requirements_file.close()
+    try:
         # Parse the reqs for "sample_lib"
         requirements, extras_require = parse_requirements(
             requirements_file.name,
@@ -47,6 +48,8 @@ def test_parse_requirements_happy_file():
             "sample_lib": sorted(set(sample_lib_requirements) - {"import-tracker"}),
             "all": sorted(sample_lib_requirements),
         }
+    finally:
+        os.unlink(requirements_file.name)
 
 
 @pytest.mark.parametrize("iterable_type", [list, tuple, set])

@@ -21,7 +21,8 @@ import logging
 import os
 
 # Local
-from .import_tracker import track_module
+from .html_report import render_html_report
+from .import_tracker import analyze_module, track_module
 
 ## Main ########################################################################
 
@@ -91,6 +92,15 @@ def main():
         default=os.environ.get("LOG_LEVEL", "warning"),
         help="Default log level",
     )
+    parser.add_argument(
+        "--html",
+        help=(
+            "Write a self-contained HTML report (two columns for direct and "
+            "conditional imports, with suspected cycle annotations) to this "
+            "file path instead of printing the JSON dependency mapping"
+        ),
+        default=None,
+    )
     args = parser.parse_args()
 
     # Determine the submodules argument value
@@ -105,6 +115,18 @@ def main():
     if log_level is None:
         log_level = int(args.log_level)
     logging.basicConfig(level=log_level)
+
+    # When an HTML report is requested, run the static two-column analysis
+    # (direct deps vs conditional imports) and write the page to disk
+    if args.html is not None:
+        analysis = analyze_module(
+            module_name=args.name,
+            package_name=args.package,
+            submodules=submodules,
+        )
+        with open(args.html, "w", encoding="utf-8") as handle:
+            handle.write(render_html_report(analysis))
+        return
 
     # Perform the tracking and print out the output
     print(

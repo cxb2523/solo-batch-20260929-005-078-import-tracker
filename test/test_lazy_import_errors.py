@@ -272,12 +272,19 @@ class Bar:
         self.val = val + 1
 """
             )
+        # NOTE: shlex.split follows POSIX rules and eats backslashes on
+        # Windows, so build the argv list directly for cross-platform use.
+        child_env = dict(os.environ)
+        child_env["PYTHONPATH"] = workdir
         out, _ = subprocess.Popen(
-            shlex.split(
-                f"{sys.executable} -c 'from some_module import Foo; import pickle; print(pickle.dumps(Foo()).hex())'"
-            ),
+            [
+                sys.executable,
+                "-c",
+                "from some_module import Foo; import pickle; "
+                "print(pickle.dumps(Foo()).hex())",
+            ],
             stdout=subprocess.PIPE,
-            env={"PYTHONPATH": workdir},
+            env=child_env,
         ).communicate()
 
     # Import the missing module
