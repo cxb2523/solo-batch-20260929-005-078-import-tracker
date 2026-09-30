@@ -24,10 +24,14 @@ def test_parse_requirements_happy_file():
     """Make sure that parse_requirements correctly parses requirements for a
     library with multiple tracked modules
     """
-    with tempfile.NamedTemporaryFile("w") as requirements_file:
+    requirements_file = tempfile.NamedTemporaryFile(
+        "w", delete=False, suffix=".txt"
+    )
+    try:
         # Make a requirements file that looks normal
         requirements_file.write("\n".join(sample_lib_requirements))
         requirements_file.flush()
+        requirements_file.close()
 
         # Parse the reqs for "sample_lib"
         requirements, extras_require = parse_requirements(
@@ -41,12 +45,18 @@ def test_parse_requirements_happy_file():
             "sample_lib.nested.submod3": sorted(
                 ["PyYaml >= 6.0", "alchemy-logging>=1.0.3"]
             ),
-            "sample_lib.nested": sorted(["PyYaml >= 6.0", "alchemy-logging>=1.0.3"]),
+            "sample_lib.nested": sorted(
+                ["PyYaml >= 6.0", "alchemy-logging>=1.0.3"]
+            ),
             "sample_lib.submod1": sorted(["conditional_deps"]),
             "sample_lib.submod2": sorted(["alchemy-logging>=1.0.3"]),
-            "sample_lib": sorted(set(sample_lib_requirements) - {"import-tracker"}),
+            "sample_lib": sorted(
+                set(sample_lib_requirements) - {"import-tracker"}
+            ),
             "all": sorted(sample_lib_requirements),
         }
+    finally:
+        os.unlink(requirements_file.name)
 
 
 @pytest.mark.parametrize("iterable_type", [list, tuple, set])

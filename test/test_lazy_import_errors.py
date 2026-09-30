@@ -272,12 +272,18 @@ class Bar:
         self.val = val + 1
 """
             )
-        out, _ = subprocess.Popen(
-            shlex.split(
-                f"{sys.executable} -c 'from some_module import Foo; import pickle; print(pickle.dumps(Foo()).hex())'"
-            ),
+        child_code = (
+            "from some_module import Foo; import pickle; "
+            "print(pickle.dumps(Foo()).hex())"
+        )
+        # Pass argv as a list directly (rather than via shlex) so that the
+        # interpreter path is portable across platforms
+        popen_kwargs = dict(
             stdout=subprocess.PIPE,
             env={"PYTHONPATH": workdir},
+        )
+        out, _ = subprocess.Popen(
+            [sys.executable, "-c", child_code], **popen_kwargs
         ).communicate()
 
     # Import the missing module

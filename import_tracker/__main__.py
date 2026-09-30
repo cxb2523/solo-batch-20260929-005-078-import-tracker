@@ -21,7 +21,7 @@ import logging
 import os
 
 # Local
-from .import_tracker import track_module
+from .import_tracker import track_module, write_html_report
 
 ## Main ########################################################################
 
@@ -91,6 +91,15 @@ def main():
         default=os.environ.get("LOG_LEVEL", "warning"),
         help="Default log level",
     )
+    parser.add_argument(
+        "--html",
+        help=(
+            "Write a standalone HTML report to the given path showing direct "
+            "dependencies and conditional imports in separate columns, with "
+            "suspected cycles annotated"
+        ),
+        default=None,
+    )
     args = parser.parse_args()
 
     # Determine the submodules argument value
@@ -105,6 +114,17 @@ def main():
     if log_level is None:
         log_level = int(args.log_level)
     logging.basicConfig(level=log_level)
+
+    # If an HTML report was requested, render it first (the JSON mapping is
+    # still printed to stdout so the CLI remains scriptable)
+    if args.html is not None:
+        write_html_report(
+            module_name=args.name,
+            output_path=args.html,
+            package_name=args.package,
+            submodules=submodules,
+            full_depth=args.full_depth,
+        )
 
     # Perform the tracking and print out the output
     print(

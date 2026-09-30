@@ -61,7 +61,7 @@ def parse_requirements(
 
     # Load all requirements from the requirements file
     if isinstance(requirements, str):
-        with open(requirements, "r") as handle:
+        with open(requirements, "r", encoding="utf-8") as handle:
             requirements_lines = list(handle.readlines())
     elif not isinstance(requirements, (list, tuple, set)):
         raise ValueError(

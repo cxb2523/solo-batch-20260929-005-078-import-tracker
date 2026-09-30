@@ -138,3 +138,25 @@ def test_lib_with_lazy_imports(capsys):
     assert captured.out
     parsed_out = json.loads(captured.out)
     assert "lazy_import_errors" in parsed_out
+
+## HTML report #################################################################
+
+
+def test_html_report(tmp_path, capsys):
+    """The --html flag writes a standalone report and still prints JSON"""
+    html_path = tmp_path / "report.html"
+    with cli_args(
+        "--name", "optional_deps", "--submodules", "--html", str(html_path)
+    ):
+        main()
+    captured = capsys.readouterr()
+    assert captured.out
+    # The optional_deps sample prints during import; the JSON is the final line
+    parsed_out = json.loads(captured.out.strip().splitlines()[-1])
+    assert "optional_deps.opt" in parsed_out
+
+    html = html_path.read_text(encoding="utf-8")
+    assert html.lstrip().startswith("<!DOCTYPE html>")
+    assert "Direct Dependencies" in html
+    assert "Conditional Imports" in html
+    assert "optional_deps.opt" in html
